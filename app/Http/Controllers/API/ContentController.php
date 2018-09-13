@@ -7,109 +7,138 @@ use App\Http\Controllers\Controller;
 class ContentController extends Controller{
     public $success_status = 200;
     public function index(Request $request){
-        $input = $request->all();
+        $input = $request->json();
+        $page = 0 ;
+        $redis_query = "_CONTENT_";
+        $page = $request->query('page');
         $content=ContentModel::select('*')->orderBy('date_publish', 'desc');
-        if($request->get('title')){
-            $content->where("title", "LIKE","%{$request->get('title')}%");
+        if($input->get('keyword')){
+            $content->where("title", "LIKE","%{$input->get('keyword')}%");
         }
-        if($request->get('summary')){
-            $content->where("summary", "LIKE","%{$request->get('summary')}%");
+        if(isset($page) && $page != 0){
+            $content->skip($page * 10);
         }
-        if($request->get('body')){
-            $content->where("body", "LIKE","%{$request->get('body')}%");
+        if($input->get('id_category')){
+            $content->where("id_category", "=","{$input->get('id_category')}");
         }
-        if($request->get('id_category')){
-            $content->where("id_category", "=","{$request->get('id_category')}");
+        if($input->get('id_topics')){
+            $content->where("id_topics", "=","{$input->get('id_topics')}");
         }
-        if($request->get('id_topics')){
-            $content->where("id_topics", "=","{$request->get('id_topics')}");
+        if($input->get('id_editor')){
+            $content->where("id_editor", "=","{$input->get('id_editor')}");
         }
-        if($request->get('id_editor')){
-            $content->where("id_editor", "=","{$request->get('id_editor')}");
+        if($input->get('id_penulis')){
+            $content->where("id_penulis", "=","{$input->get('id_penulis')}");
         }
-        if($request->get('id_penulis')){
-            $content->where("id_penulis", "=","{$request->get('id_penulis')}");
+        if($input->get('id_reporter')){
+            $content->where("id_reporter", "=","{$input->get('id_reporter')}");
         }
-        if($request->get('id_reporter')){
-            $content->where("id_reporter", "=","{$request->get('id_reporter')}");
-        }
-        if($request->get('arr_exclude')){
-            $arr_exclude = json_decode($request->get('arr_exclude'));
+        if($input->get('arr_exclude')){
+            $arr_exclude = json_decode($input->get('arr_exclude'));
             $str_exclude = implode(",", $arr_exclude);
             $content->where("id", "NOT IN", ($str_exclude) );
         }   
-        if($request->get('id_subtitle')){
-            $content->where("id_subtitle", "=","{$request->get('id_subtitle')}");
+        if($input->get('id_subtitle')){
+            $content->where("id_subtitle", "=","{$input->get('id_subtitle')}");
         }
-        if($request->get('id_translator')){
-            $content->where("id_translator", "=","{$request->get('id_translator')}");
+        if($input->get('id_translator')){
+            $content->where("id_translator", "=","{$input->get('id_translator')}");
         }
-        if($request->get('slug')){
-            $content->where("slug", "=","{$request->get('slug')}");
+        if($input->get('slug')){
+            $content->where("slug", "=","{$input->get('slug')}");
         }
-        if($request->get('tipe')){
-            $content->where("tipe", "=","{$request->get('tipe')}");
+        if($input->get('tipe')){
+            $content->where("tipe", "=","{$input->get('tipe')}");
         }
-        if($request->get('status')){
-            $content->where("status", "=","{$request->get('status')}");
+        if($input->get('status')){
+            $content->where("status", "=","{$input->get('status')}");
         }
-        if($request->get('language')){
-            $content->where("language", "=","{$request->get('language')}");
+        if($input->get('language')){
+            $content->where("language", "=","{$input->get('language')}");
         }
-        if($request->get('headline')){
-            $content->where("headline", "=","{$request->get('headline')}");
+        if($input->get('headline')){
+            $content->where("headline", "=","{$input->get('headline')}");
         }
-        if($request->get('is_breaking_news')){
-            $content->where("is_breaking_news", "=","{$request->get('is_breaking_news')}");
+        if($input->get('is_breaking_news')){
+            $content->where("is_breaking_news", "=","{$input->get('is_breaking_news')}");
         }
-        if($request->get('position')){
-            $content->where("position", "=","{$request->get('position')}");
+        if($input->get('position')){
+            $content->where("position", "=","{$input->get('position')}");
         }
-        if($request->get('tipe')){
-            $content->where("tipe", "=","{$request->get('tipe')}");
+        if($input->get('is_old')){
+            $content->where("is_old", "=","{$input->get('is_old')}");
         }
-        if($request->get('is_old')){
-            $content->where("is_old", "=","{$request->get('is_old')}");
+        if($input->get('tipe_foto')){
+            $content->where("tipe_foto", "=","{$input->get('tipe_foto')}");
         }
-        if($request->get('tipe_foto')){
-            $content->where("tipe_foto", "=","{$request->get('tipe_foto')}");
+        if($input->get('is_adv')){
+            $content->where("is_adv", "=","{$input->get('is_adv')}");
         }
-        if($request->get('is_adv')){
-            $content->where("is_adv", "=","{$request->get('is_adv')}");
+        if($input->get('adv_zone')){
+            $content->whereRaw('FIND_IN_SET(?,adv_zone)', $input->get('adv_zone'));
         }
-        if($request->get('is_adv')){
-            $content->where("is_adv", "=","{$request->get('is_adv')}");
+        if($input->get('adv_date_start')){
+            $content->where("adv_date_start", ">=","{$input->get('adv_date_start')}");
         }
-        if($request->get('adv_zone')){
-            $content->whereRaw('FIND_IN_SET(?,adv_zone)', $request->get('adv_zone'));
+        if($input->get('adv_date_end')){
+            $content->where("adv_date_end", "<=","{$input->get('adv_date_end')}");
         }
-        if($request->get('adv_date_start')){
-            $content->where("adv_date_start", ">=","{$request->get('adv_date_start')}");
+        if($input->get('date_publish')){
+            $content->where("date_publish", ">=","{$input->get('date_publish')}");
         }
-        if($request->get('adv_date_end')){
-            $content->where("adv_date_end", "<=","{$request->get('adv_date_end')}");
+        if($input->get('is_microsite')){
+            $content->where("is_microsite", "=","{$input->get('is_microsite')}");
         }
-        if($request->get('date_publish')){
-            $content->where("date_publish", ">=","{$request->get('date_publish')}");
+        if($input->get('position_breaking_news')){
+            $content->where("position_breaking_news", "=","{$input->get('position_breaking_news')}");
         }
-        if($request->get('is_microsite')){
-            $content->where("is_microsite", "=","{$request->get('is_microsite')}");
+        if($input->get('id_naskah')){
+            $content->where("id_naskah", "=","{$input->get('id_naskah')}");
         }
-        if($request->get('position_breaking_news')){
-            $content->where("position_breaking_news", "=","{$request->get('position_breaking_news')}");
+        if($input->get('post_socmed')){
+            $content->where("post_socmed", "=","{$input->get('post_socmed')}");
         }
-        if($request->get('id_naskah')){
-            $content->where("id_naskah", "=","{$request->get('id_naskah')}");
+        
+        if(env("REDIS_ACTIVE") == true){
+            $redis_query= "_Content_". str_replace(' ', '',$input->get('keyword'))."_"
+            .$input->get('id_category')."_".$input->get('id_topics')."_"
+            .$input->get('id_editor')."_".$input->get('id_penulis')."_"
+            .$input->get('id_reporter')."_".$input->get('id_subtitle')."_"
+            .$input->get('id_translator')."_".$input->get('slug')."_"
+            .$input->get('tipe')."_".$input->get('status')."_"
+            .$input->get('language')."_".$input->get('headline')."_"
+            .$input->get('is_breaking_news')."_".$input->get('position')."_"
+            .$input->get('tipe')."_".$input->get('is_old')."_"
+            .$input->get('tipe_foto')."_".$input->get('is_adv')."_"
+            .$input->get('adv_zone')."_".$input->get('is_adv')."_"
+            .$input->get('is_microsite')."_".$input->get('position_breaking_news')."_"
+            .$input->get('id_naskah')."_".$input->get('post_socmed')."_"
+            .$page;
+            $redis = app()->make('redis');
+            $datafromRedis = $redis->get($redis_query);
+            if($datafromRedis != '' && count($datafromRedis)>0){
+                $content = $datafromRedis;
+                $temp = json_decode($content);
+                return response()->json(['data'=>$temp],$this->success_status);
+            }else{
+                $content = $content->paginate(10);
+                $content = $this->__getCategory($content);
+                $content = $this->__getTopics($content);
+                $content = $this->__getFoto($content);
+                $content = $this->__getImages($content);
+                $content = $this->__getImageCover($content);
+                $redis->set($redis_query,$content->toJson());
+                $redis->expire($redis_query, env("REDIS_TIMEOUT"));
+            }
+        }else{
+            $content = $content->paginate(10);
+            $content = $this->__getCategory($content);
+            $content = $this->__getTopics($content);
+            $content = $this->__getFoto($content);
+            $content = $this->__getImages($content);
+            $content = $this->__getImageCover($content);
         }
-        if($request->get('post_socmed')){
-            $content->where("post_socmed", "=","{$request->get('post_socmed')}");
-        }
-        $content = $content->paginate(8);
-        $content = $this->__getCategory($content);
-        $content = $this->__getTopics($content);
-        $content = $this->__getFoto($content);
-        $content = $this->__getImages($content);
-         $content = $this->__getImageCover($content);
+       
         return response()->json(['data'=>$content],$this->success_status);
     }
 
